@@ -1,0 +1,308 @@
+using System;
+using System.IO;
+/*-----------------------------------------------
+PUCMINAS - Contagem - Disciplina:ATP
+Programador: Lucas Henrique Da Silva Rabelo
+-----------------------------------------------*/
+
+class Program
+{
+    struct Produto
+    {
+        public int Codigo;
+        public string Nome;
+        public double Preco;
+        public int Quantidade;
+    }
+    static int MAX = 100;
+    static Produto[] produtos = new Produto[MAX];
+    static int N = 0;
+
+    public static void Main(string[] args)
+    {
+        int opcao;
+
+        LerProdutos();
+
+        do
+        {
+            Console.Clear();
+            ImprimirMenu();
+            opcao = int.Parse(Console.ReadLine());
+
+            switch (opcao)
+            {
+                case 1:
+                    CadastrarProduto();
+                    break;
+                case 2:
+                    ListarProdutos();
+                    break;
+                case 3:
+                    EditarProduto();
+                    break;
+                case 4:
+                    PesquisarProdutoPorNome();
+                    break;
+                case 5:
+                    PesquisarProdutoPorCodigo();
+                    break;
+                case 6:
+                    ListarProdutosComEstoqueInferior();
+                    break;
+                case 7:
+                    ApagarProduto();
+                    break;
+                case 8:
+                    Console.WriteLine("\nFim do Programa.");
+                    break;
+                default:
+                    Console.WriteLine("\nOpção inválida. Tente novamente.");
+                    break;
+            }
+
+            Console.ReadKey();
+
+        } while (opcao != 8);
+
+        GravarProdutos();
+
+    }
+
+    static void ImprimirMenu()
+    {
+        Console.WriteLine("\n  ################ -- MENU -- ###################");
+        Console.WriteLine("  ##                                           ##");
+        Console.WriteLine("  ## 1. Cadastrar um novo produto              ##");
+        Console.WriteLine("  ## 2. Listar todos os produtos cadastrados   ##");
+        Console.WriteLine("  ## 3. Editar dados de um produto             ##");
+        Console.WriteLine("  ## 4. Pesquisar um produto por nome          ##");
+        Console.WriteLine("  ## 5. Pesquisar um produto por código        ##");
+        Console.WriteLine("  ## 6. Produtos com estoque inferior a 10     ##");
+        Console.WriteLine("  ## 7. Apagar um produto                      ##");
+        Console.WriteLine("  ## 8. Sair do Programa                       ##");
+        Console.WriteLine("  ##                                           ##");
+        Console.WriteLine("  ###############################################\n");
+
+        Console.Write("              Escolha uma opção:");
+    }
+
+    static void CadastrarProduto()
+    {
+        if (N == MAX)
+        {
+            Console.WriteLine("Estoque Cheio!");
+            return;
+        }
+        /*utilizado para ler uma linha de entrada do usuário e convertê-la em um valor inteiro*/
+        Console.Write("\nDigite o código do produto: ");
+        int codigo = Convert.ToInt32(Console.ReadLine());
+
+        Console.Write("Digite o nome do produto: ");
+        string nome = Console.ReadLine();
+
+        Console.Write("Digite o preço do produto: ");
+        double preco = Convert.ToDouble(Console.ReadLine());
+
+        Console.Write("Digite a quantidade de produtos: ");
+        int quantidade = Convert.ToInt32(Console.ReadLine());
+
+        /*Cria um novo objeto Produto e armazena na variável novoProduto*/
+        Produto novoProduto = new Produto
+        {
+            Codigo = codigo,
+            Nome = nome,
+            Preco = preco,
+            Quantidade = quantidade
+        };
+
+        produtos[N] = novoProduto;
+        N++;
+
+        Console.WriteLine("Produto cadastrado.");
+    }
+
+    static void ListarProdutos()
+    {
+        Console.WriteLine($"\nQuantidade de Produtos Cadastrados: {N}");
+
+        for (int i = 0; i < N; i++)
+        {
+            Console.WriteLine($"\n{i + 1} - Código: {produtos[i].Codigo} -- Nome: {produtos[i].Nome} -- Preço: {produtos[i].Preco} -- Quantidade: {produtos[i].Quantidade}");
+        }
+    }
+    static void GravarProdutos()
+    {
+
+        StreamWriter sw = new StreamWriter("arquivo.txt");
+
+        sw.WriteLine(N);
+
+        for (int i = 0; i < N; i++)
+        {
+            sw.WriteLine($"{produtos[i].Codigo};{produtos[i].Nome};{produtos[i].Preco};{produtos[i].Quantidade}");
+        }
+        sw.Close();
+    }
+
+    static void LerProdutos()
+    {
+        StreamReader sr = new StreamReader("arquivo.txt");
+
+        N = int.Parse(sr.ReadLine());
+
+        for (int i = 0; i < N; i++)
+        {
+            string a = sr.ReadLine();
+            string[] dados = a.Split(";");
+            produtos[i].Codigo = int.Parse(dados[0]);
+            produtos[i].Nome = dados[1];
+            produtos[i].Preco = double.Parse(dados[2]);
+            produtos[i].Quantidade = int.Parse(dados[3]);
+        }
+        sr.Close();
+    }
+
+    static void EditarProduto()
+    {
+        Console.Write("\nDigite o Código do Produto para Editar: ");
+        int codigo = int.Parse(Console.ReadLine());
+
+        /*Localizar o elemento específico no array*/
+
+        int index = EncontrarProduto(codigo);
+
+        if (index == -1)
+        {
+            Console.WriteLine("Produto não encontrado.");
+            return;
+        }
+
+        Console.Write("Digite o novo nome do produto: ");
+        string nome = Console.ReadLine();
+
+        Console.Write("Digite o novo preço do produto: ");
+        double preco = Convert.ToDouble(Console.ReadLine());
+
+        Console.Write("Digite a nova quantidade de produtos: ");
+        int quantidade = Convert.ToInt32(Console.ReadLine());
+
+        /*Localizar o elemento específico no array "produtos" */
+
+        produtos[index].Nome = nome;
+        produtos[index].Preco = preco;
+        produtos[index].Quantidade = quantidade;
+
+        Console.WriteLine("Produto editado com sucesso.");
+    }
+
+    static void PesquisarProdutoPorNome()
+    {
+        Console.Write("\nDigite o nome do Produto: ");
+        string nome = Console.ReadLine();
+
+        /*para controlar se um produto foi encontrado durante a pesquisa por nome o bool é utilizado como false no início*/
+        bool produtoEncontrado = false;
+
+        for (int i = 0; i < N; i++)
+        {
+            /*o Equals é usado para comparar se o nome de um produto é igual ao nome inserido pelo usuário durante a pesquisa.  */
+
+            if (produtos[i].Nome.Equals(nome, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"\nCódigo: {produtos[i].Codigo} -- Nome: {produtos[i].Nome} -- Preço: {produtos[i].Preco} -- Quantidade: {produtos[i].Quantidade}");
+                produtoEncontrado = true;
+            }
+        }
+
+        /* negação lógica que inverte o valor de uma expressão booleana.*/
+        if (!produtoEncontrado)
+        {
+            Console.WriteLine("Produto não encontrado.");
+        }
+    }
+
+    static void PesquisarProdutoPorCodigo()
+    {
+        Console.Write("\nDigite o Código do Produto: ");
+        int codigo = int.Parse(Console.ReadLine());
+
+        int index = EncontrarProduto(codigo);
+
+        /* Caso o valor seja diferente, isso indica que o produto foi encontrado e as informações desse produto são exibidas na linha seguinte.*/
+
+        if (index == -1)
+        {
+            Console.WriteLine("Produto não encontrado.");
+            return;
+        }
+
+        Console.WriteLine($"\nCódigo: {produtos[index].Codigo} -- Nome: {produtos[index].Nome} -- Preço: {produtos[index].Preco} -- Quantidade: {produtos[index].Quantidade}");
+    }
+
+    static void ListarProdutosComEstoqueInferior()
+    {
+        Console.WriteLine("\nProdutos com estoque inferior a 10:");
+
+        /* Durante a passagem  do loop for em cada elemento do produtos é verificado a propriedade Quantidade,a funcao do bool é indicar se pelo menos um produto com estoque inferior a 10 foi encontrado durante a passagem do loop,exibindo uma mensagem no final da execução*/
+
+        bool produtosEncontrados = false;
+
+        for (int i = 0; i < N; i++)
+        {
+            if (produtos[i].Quantidade < 10)
+            {
+                Console.WriteLine($"\nCódigo: {produtos[i].Codigo} -- Nome: {produtos[i].Nome} -- Preço: {produtos[i].Preco} -- Quantidade: {produtos[i].Quantidade}");
+                produtosEncontrados = true;
+            }
+        }
+
+        if (!produtosEncontrados)
+        {
+            Console.WriteLine("\nNenhum produto com estoque inferior a 10 encontrado.");
+        }
+    }
+
+    static void ApagarProduto()
+    {
+        if (N == 0)
+        {
+            Console.WriteLine("Não há produtos cadastrados.");
+            return;
+        }
+
+        Console.Write("\nDigite o código do produto que deseja apagar: ");
+        int codigo = int.Parse(Console.ReadLine());
+
+        int index = EncontrarProduto(codigo);
+
+        if (index == -1)
+        {
+            Console.WriteLine("Produto não encontrado.");
+            return;
+        }
+
+        for (int i = index; i < N - 1; i++)
+        {
+            produtos[i] = produtos[i + 1];
+        }
+
+        /*O N-- é utilizada para diminuir o valor de N */
+        N--;
+
+        Console.WriteLine("Produto Apagado.");
+    }
+
+    static int EncontrarProduto(int codigo)
+    {
+        for (int i = 0; i < N; i++)
+        {
+            if (produtos[i].Codigo == codigo)
+            {
+                return i;
+            }
+        }
+        /* o valor -1 é retornado para indicar que o produto não foi encontrado */
+        return -1;
+    }
+}
